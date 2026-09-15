@@ -7,6 +7,9 @@ from dataclasses import dataclass
 from datetime import date, timedelta
 from typing import Optional
 
+from sqlalchemy import func
+
+from app.extensions import db
 from app.models import PurchaseHistory
 from flask import current_app
 
@@ -70,3 +73,19 @@ def compute_product_cycles(user_id: int) -> dict[int, ProductCycle]:
         )
 
     return cycles
+
+
+def bestseller_product_ids(limit: int = 5) -> set[int]:
+    """Product ids with the highest total purchased quantity across every
+    user - a simple, transparent "베스트 상품" signal (site-wide sales
+    volume), independent of any one user's personal recommendations."""
+    rows = (
+        db.session.query(
+            PurchaseHistory.product_id, func.sum(PurchaseHistory.quantity).label("total_qty")
+        )
+        .group_by(PurchaseHistory.product_id)
+        .order_by(func.sum(PurchaseHistory.quantity).desc())
+        .limit(limit)
+        .all()
+    )
+    return {row.product_id for row in rows}

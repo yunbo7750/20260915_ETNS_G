@@ -40,20 +40,24 @@ def create_app(config_class=Config):
     def inject_globals():
         unread_count = 0
         cart_count = 0
+        bestseller_ids = set()
         if current_user.is_authenticated:
             from app.models import Notification, Cart
+            from app.services.purchase_cycle_service import bestseller_product_ids
 
             unread_count = Notification.query.filter_by(
                 user_id=current_user.id, is_read=False
             ).count()
             cart = Cart.query.filter_by(user_id=current_user.id).first()
             cart_count = cart.total_quantity if cart else 0
+            bestseller_ids = bestseller_product_ids()
 
         return {
             "service_name": app.config["SERVICE_NAME"],
             "service_tagline": app.config["SERVICE_TAGLINE"],
             "unread_notification_count": unread_count,
             "cart_item_count": cart_count,
+            "bestseller_ids": bestseller_ids,
         }
 
     @app.errorhandler(404)

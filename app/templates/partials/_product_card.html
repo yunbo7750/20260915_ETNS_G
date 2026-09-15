@@ -1,6 +1,9 @@
 <div class="card h-100 shadow-sm rec-card">
     <a href="{{ url_for('product.product_detail', product_id=product.id) }}" class="text-decoration-none text-reset">
         <div class="rec-card-image d-flex align-items-center justify-content-center">
+            {% if product.id in bestseller_ids %}
+            <span class="badge-best">🏆 베스트 상품</span>
+            {% endif %}
             {% if product.image_url %}
             <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid">
             {% else %}
