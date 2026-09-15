@@ -4,27 +4,31 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>로그인 - ETNS TODO</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;800&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+  <div class="scanlines"></div>
   <div class="container auth-container">
     <header>
-      <h1>📝 할일관리</h1>
-      <p class="subtitle">로그인</p>
+      <h1 data-text="TASK//GRID">TASK//GRID</h1>
+      <p class="subtitle">SYSTEM ACCESS // LOGIN</p>
     </header>
 
     {% if error %}
-    <p class="auth-error">{{ error }}</p>
+    <p class="auth-error">&gt; ERROR: {{ error }}</p>
     {% endif %}
 
     <form class="auth-form" action="{{ url_for('login') }}" method="post">
-      <input type="text" name="username" placeholder="아이디" autocomplete="username" required autofocus>
-      <input type="password" name="password" placeholder="비밀번호" autocomplete="current-password" required>
-      <button type="submit">로그인</button>
+      <input type="text" name="username" placeholder="USER_ID" autocomplete="username" required autofocus>
+      <input type="password" name="password" placeholder="PASSCODE" autocomplete="current-password" required>
+      <button type="submit">&gt; CONNECT</button>
     </form>
 
     <p class="auth-switch">
-      계정이 없으신가요? <a href="{{ url_for('register') }}">회원가입</a>
+      NO ACCOUNT? <a href="{{ url_for('register') }}">REGISTER</a>
     </p>
   </div>
 </body>
