@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>로그인 - ETNS TODO</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container auth-container">
+    <header>
+      <h1>📝 할일관리</h1>
+      <p class="subtitle">로그인</p>
+    </header>
+
+    {% if error %}
+    <p class="auth-error">{{ error }}</p>
+    {% endif %}
+
+    <form class="auth-form" action="{{ url_for('login') }}" method="post">
+      <input type="text" name="username" placeholder="아이디" autocomplete="username" required autofocus>
+      <input type="password" name="password" placeholder="비밀번호" autocomplete="current-password" required>
+      <button type="submit">로그인</button>
+    </form>
+
+    <p class="auth-switch">
+      계정이 없으신가요? <a href="{{ url_for('register') }}">회원가입</a>
+    </p>
+  </div>
+</body>
+</html>

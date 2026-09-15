@@ -9,6 +9,12 @@
 <body>
   <div class="container">
     <header>
+      <div class="topbar">
+        <span class="username">{{ username }}님</span>
+        <form action="{{ url_for('logout') }}" method="post">
+          <button type="submit" class="logout-btn">로그아웃</button>
+        </form>
+      </div>
       <h1>📝 할일관리</h1>
       <p class="subtitle">{{ done_count }} / {{ total }} 완료</p>
     </header>
