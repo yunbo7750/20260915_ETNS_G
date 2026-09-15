@@ -1,3 +1,4 @@
+import os
 import sqlite3
 from datetime import datetime
 from pathlib import Path
@@ -5,7 +6,10 @@ from pathlib import Path
 from flask import Flask, g, redirect, render_template, request, url_for
 
 BASE_DIR = Path(__file__).resolve().parent
-DATABASE = BASE_DIR / "todo.db"
+# Vercel's serverless filesystem is read-only except /tmp, and /tmp is not
+# shared or persistent across invocations - data added there can disappear
+# on the next cold start.
+DATABASE = Path("/tmp/todo.db") if os.environ.get("VERCEL") else BASE_DIR / "todo.db"
 
 app = Flask(__name__)
 
@@ -111,6 +115,7 @@ def delete(task_id):
     return redirect(request.referrer or url_for("index"))
 
 
+init_db()
+
 if __name__ == "__main__":
-    init_db()
     app.run(debug=True)
