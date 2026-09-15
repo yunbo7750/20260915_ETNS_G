@@ -76,6 +76,8 @@ def create_app(config_class=Config):
                 from seed import build_demo_data
 
                 build_demo_data()
+            else:
+                _backfill_demo_content()
 
     return app
 
@@ -116,3 +118,46 @@ def _ensure_additive_columns():
             if name not in existing:
                 with db.engine.begin() as conn:
                     conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl_type}"))
+
+
+def _backfill_demo_content():
+    """Non-destructively brings an already-seeded database up to date with
+    newer demo content (product images, the keyword-matching example event,
+    a new sample product) without touching any real user activity that may
+    have accumulated since the original seeding."""
+    from app.models import Product, CalendarEvent, User
+    from seed import _product_image_url, PRODUCTS
+
+    changed = False
+
+    for product in Product.query.filter(Product.image_url.is_(None)).all():
+        product.image_url = _product_image_url(product.category)
+        changed = True
+
+    existing_names = {p.name for p in Product.query.all()}
+    for name, category, price, unit, tags, season, target_age, desc in PRODUCTS:
+        if name not in existing_names:
+            db.session.add(
+                Product(
+                    name=name, category=category, price=price, unit=unit,
+                    tags=tags, season=season, target_age=target_age, description=desc,
+                    image_url=_product_image_url(category), stock=200, active=True,
+                )
+            )
+            changed = True
+
+    demo_event_keywords = {
+        ("user01", "이도윤 생일"): "축구 좋아함, 비타민 필요",
+        ("user04", "학교 행사"): "건강 챙기기",
+    }
+    for (username, title), keywords in demo_event_keywords.items():
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            continue
+        event = CalendarEvent.query.filter_by(user_id=user.id, title=title).first()
+        if event and not event.keywords:
+            event.keywords = keywords
+            changed = True
+
+    if changed:
+        db.session.commit()
