@@ -66,6 +66,20 @@ def create_app(config_class=Config):
 
     if app.config.get("AUTO_SEED_IF_EMPTY", True):
         with app.app_context():
+            from sqlalchemy import inspect as sa_inspect, text
+
+            insp = sa_inspect(db.engine)
+            if "users" in insp.get_table_names():
+                existing_columns = {c["name"] for c in insp.get_columns("users")}
+                if "email" not in existing_columns:
+                    # A `users` table exists but doesn't match our schema -
+                    # it's left over from an unrelated app that previously
+                    # used this database. Drop it (and its dependents) so
+                    # create_all() below can lay down our own schema.
+                    with db.engine.begin() as conn:
+                        conn.execute(text("DROP TABLE IF EXISTS tasks"))
+                        conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
+
             db.create_all()
             from app.models import Product
 
