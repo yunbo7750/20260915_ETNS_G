@@ -63,25 +63,53 @@ PRODUCTS = [
     ("축구공 세트", "기타", 15000, "1세트", "장난감,축구,선물", "전체", "5-12세", "아이와 함께 즐기는 축구공 세트."),
 ]
 
-# Product image: every product shows a category-themed illustration
-# (app/static/images/products/) rather than a generic placeholder icon.
-CATEGORY_IMAGE_SLUG = {
-    "식품": "food",
-    "간편식": "instant",
-    "과자": "snack",
-    "음료": "drink",
-    "커피": "coffee",
-    "생활용품": "household",
-    "세제": "detergent",
-    "욕실용품": "bath",
-    "도서": "book",
-    "어린이도서": "kids-book",
-    "기타": "etc",
+# Product image: every product gets its own illustration
+# (app/static/images/products/<slug>.svg) rather than a generic or
+# shared-by-category placeholder icon.
+PRODUCT_IMAGE_SLUG = {
+    "신라면": "shin-ramyun",
+    "진라면 매운맛": "jin-ramyun",
+    "포기김치 1kg": "kimchi",
+    "즉석밥(햇반)": "instant-rice",
+    "참치캔": "tuna-can",
+    "컵라면 모음": "cup-noodle",
+    "짜장라면": "jjajang-ramyun",
+    "떡볶이 밀키트": "tteokbokki",
+    "냉동만두": "mandu",
+    "미역국 밀키트": "miyeokguk",
+    "새우깡": "saewookkang",
+    "초코파이": "chocopie",
+    "허니버터칩": "honeybutter-chip",
+    "어린이 비타민 젤리": "vitamin-jelly",
+    "뻥튀기": "ppeongtwigi",
+    "식혜": "sikhye",
+    "수정과": "sujeonggwa",
+    "원두커피 드립백": "drip-coffee",
+    "인스턴트 커피믹스": "coffee-mix",
+    "콜드브루 커피": "cold-brew",
+    "섬유유연제": "fabric-softener",
+    "세탁세제": "laundry-detergent",
+    "주방세제": "dish-soap",
+    "샴푸": "shampoo",
+    "바디워시": "bodywash",
+    "치약 세트": "toothpaste",
+    "어린이 동화책 전집": "fairytale-books",
+    "어린이 학습만화": "kids-comic",
+    "베스트셀러 소설": "novel",
+    "자기계발서": "selfhelp-book",
+    "파티용 풍선 세트": "balloons",
+    "생일 케이크 세트": "birthday-cake",
+    "문구 세트": "stationery",
+    "와인(선물용)": "wine",
+    "여행용 세면도구 파우치": "travel-pouch",
+    "상비약 세트": "medicine-kit",
+    "명절 선물세트(한과)": "hangwa-giftset",
+    "축구공 세트": "soccer-ball",
 }
 
 
-def _product_image_url(category: str) -> str:
-    slug = CATEGORY_IMAGE_SLUG.get(category, "etc")
+def _product_image_url(product_name: str) -> str:
+    slug = PRODUCT_IMAGE_SLUG.get(product_name, "hangwa-giftset")
     return f"/static/images/products/{slug}.svg"
 
 
@@ -165,7 +193,7 @@ def build_demo_data():
         product = Product(
             name=name, category=category, price=price, unit=unit,
             tags=tags, season=season, target_age=target_age, description=desc,
-            image_url=_product_image_url(category),
+            image_url=_product_image_url(name),
             stock=200, active=True,
         )
         db.session.add(product)

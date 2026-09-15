@@ -130,9 +130,14 @@ def _backfill_demo_content():
 
     changed = False
 
-    for product in Product.query.filter(Product.image_url.is_(None)).all():
-        product.image_url = _product_image_url(product.category)
-        changed = True
+    # Re-point every product at its per-product illustration - covers both
+    # products seeded before this feature existed (image_url is NULL) and
+    # ones seeded with the older, since-removed category-shared images.
+    for product in Product.query.all():
+        correct_url = _product_image_url(product.name)
+        if product.image_url != correct_url:
+            product.image_url = correct_url
+            changed = True
 
     existing_names = {p.name for p in Product.query.all()}
     for name, category, price, unit, tags, season, target_age, desc in PRODUCTS:
@@ -141,7 +146,7 @@ def _backfill_demo_content():
                 Product(
                     name=name, category=category, price=price, unit=unit,
                     tags=tags, season=season, target_age=target_age, description=desc,
-                    image_url=_product_image_url(category), stock=200, active=True,
+                    image_url=_product_image_url(name), stock=200, active=True,
                 )
             )
             changed = True
