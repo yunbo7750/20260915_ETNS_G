@@ -1,7 +1,8 @@
 {% extends "base.html" %}
-{% block title %}내 정보 · {{ service_name }}{% endblock %}
+{% block title %}마이페이지 · {{ service_name }}{% endblock %}
 {% block content %}
-<h4 class="fw-bold mb-4">내 정보</h4>
+<h4 class="fw-bold mb-1">마이페이지</h4>
+<p class="text-muted mb-4">{{ current_user.name }}님의 기본 정보, 가족 구성, 선호도를 관리해요.</p>
 
 <div class="row g-4">
     <div class="col-md-6">
