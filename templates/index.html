@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>할일관리 - ETNS TODO</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📝 할일관리</h1>
+      <p class="subtitle">{{ done_count }} / {{ total }} 완료</p>
+    </header>
+
+    <form class="add-form" action="{{ url_for('add') }}" method="post">
+      <input
+        type="text"
+        name="title"
+        placeholder="할 일을 입력하세요..."
+        autocomplete="off"
+        required
+      >
+      <button type="submit">추가</button>
+    </form>
+
+    <nav class="filters">
+      <a href="{{ url_for('index', filter='all') }}" class="{{ 'active' if filter == 'all' else '' }}">전체</a>
+      <a href="{{ url_for('index', filter='active') }}" class="{{ 'active' if filter == 'active' else '' }}">진행중</a>
+      <a href="{{ url_for('index', filter='done') }}" class="{{ 'active' if filter == 'done' else '' }}">완료</a>
+    </nav>
+
+    <ul class="task-list">
+      {% for task in tasks %}
+      <li class="task {{ 'done' if task['done'] else '' }}">
+        <form class="toggle-form" action="{{ url_for('toggle', task_id=task['id']) }}" method="post">
+          <button type="submit" class="checkbox" aria-label="완료 토글">
+            {{ '✔' if task['done'] else '' }}
+          </button>
+        </form>
+
+        <span class="title">{{ task['title'] }}</span>
+        <span class="created">{{ task['created_at'] }}</span>
+
+        <form class="edit-form" action="{{ url_for('edit', task_id=task['id']) }}" method="post">
+          <input type="text" name="title" value="{{ task['title'] }}" class="edit-input">
+          <button type="submit" class="edit-btn">수정</button>
+        </form>
+
+        <form class="delete-form" action="{{ url_for('delete', task_id=task['id']) }}" method="post"
+              onsubmit="return confirm('삭제할까요?');">
+          <button type="submit" class="delete-btn">삭제</button>
+        </form>
+      </li>
+      {% else %}
+      <li class="empty">할 일이 없습니다.</li>
+      {% endfor %}
+    </ul>
+  </div>
+</body>
+</html>
