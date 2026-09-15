@@ -1,5 +1,10 @@
 __pycache__/
 *.pyc
-todo.db
 .venv/
 venv/
+
+.vercel
+.env*
+
+supabase/.temp
+supabase/.branches

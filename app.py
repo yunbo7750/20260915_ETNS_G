@@ -1,15 +1,10 @@
 import os
-import sqlite3
-from datetime import datetime
-from pathlib import Path
 
+import psycopg2
+import psycopg2.extras
 from flask import Flask, g, redirect, render_template, request, url_for
 
-BASE_DIR = Path(__file__).resolve().parent
-# Vercel's serverless filesystem is read-only except /tmp, and /tmp is not
-# shared or persistent across invocations - data added there can disappear
-# on the next cold start.
-DATABASE = Path("/tmp/todo.db") if os.environ.get("VERCEL") else BASE_DIR / "todo.db"
+DATABASE_URL = os.environ["DATABASE_URL"]
 
 app = Flask(__name__)
 
@@ -17,9 +12,17 @@ app = Flask(__name__)
 def get_db():
     db = getattr(g, "_database", None)
     if db is None:
-        db = g._database = sqlite3.connect(DATABASE)
-        db.row_factory = sqlite3.Row
+        db = g._database = psycopg2.connect(DATABASE_URL, sslmode="require")
     return db
+
+
+def query(sql, params=(), fetch=None):
+    db = get_db()
+    with db.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+        cur.execute(sql, params)
+        result = cur.fetchall() if fetch == "all" else cur.fetchone() if fetch == "one" else None
+    db.commit()
+    return result
 
 
 @app.teardown_appcontext
@@ -29,48 +32,32 @@ def close_db(exception):
         db.close()
 
 
-def init_db():
-    with app.app_context():
-        db = get_db()
-        db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS tasks (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                done INTEGER NOT NULL DEFAULT 0,
-                created_at TEXT NOT NULL
-            )
-            """
-        )
-        db.commit()
+SELECT_TASKS = """
+    SELECT id, title, done,
+           to_char(created_at AT TIME ZONE 'Asia/Seoul', 'YYYY-MM-DD HH24:MI') AS created_at
+    FROM tasks
+    {where}
+    ORDER BY id DESC
+"""
 
 
 @app.route("/")
 def index():
     filter_ = request.args.get("filter", "all")
-    db = get_db()
-    if filter_ == "active":
-        tasks = db.execute(
-            "SELECT * FROM tasks WHERE done = 0 ORDER BY id DESC"
-        ).fetchall()
-    elif filter_ == "done":
-        tasks = db.execute(
-            "SELECT * FROM tasks WHERE done = 1 ORDER BY id DESC"
-        ).fetchall()
-    else:
-        tasks = db.execute("SELECT * FROM tasks ORDER BY id DESC").fetchall()
+    where = {"active": "WHERE NOT done", "done": "WHERE done"}.get(filter_, "")
+    tasks = query(SELECT_TASKS.format(where=where), fetch="all")
 
-    total = db.execute("SELECT COUNT(*) AS c FROM tasks").fetchone()["c"]
-    done_count = db.execute(
-        "SELECT COUNT(*) AS c FROM tasks WHERE done = 1"
-    ).fetchone()["c"]
+    counts = query(
+        "SELECT COUNT(*) AS total, COUNT(*) FILTER (WHERE done) AS done_count FROM tasks",
+        fetch="one",
+    )
 
     return render_template(
         "index.html",
         tasks=tasks,
         filter=filter_,
-        total=total,
-        done_count=done_count,
+        total=counts["total"],
+        done_count=counts["done_count"],
     )
 
 
@@ -78,22 +65,13 @@ def index():
 def add():
     title = request.form.get("title", "").strip()
     if title:
-        db = get_db()
-        db.execute(
-            "INSERT INTO tasks (title, done, created_at) VALUES (?, 0, ?)",
-            (title, datetime.now().strftime("%Y-%m-%d %H:%M")),
-        )
-        db.commit()
+        query("INSERT INTO tasks (title) VALUES (%s)", (title,))
     return redirect(url_for("index"))
 
 
 @app.route("/toggle/<int:task_id>", methods=["POST"])
 def toggle(task_id):
-    db = get_db()
-    db.execute(
-        "UPDATE tasks SET done = 1 - done WHERE id = ?", (task_id,)
-    )
-    db.commit()
+    query("UPDATE tasks SET done = NOT done WHERE id = %s", (task_id,))
     return redirect(request.referrer or url_for("index"))
 
 
@@ -101,21 +79,15 @@ def toggle(task_id):
 def edit(task_id):
     title = request.form.get("title", "").strip()
     if title:
-        db = get_db()
-        db.execute("UPDATE tasks SET title = ? WHERE id = ?", (title, task_id))
-        db.commit()
+        query("UPDATE tasks SET title = %s WHERE id = %s", (title, task_id))
     return redirect(request.referrer or url_for("index"))
 
 
 @app.route("/delete/<int:task_id>", methods=["POST"])
 def delete(task_id):
-    db = get_db()
-    db.execute("DELETE FROM tasks WHERE id = ?", (task_id,))
-    db.commit()
+    query("DELETE FROM tasks WHERE id = %s", (task_id,))
     return redirect(request.referrer or url_for("index"))
 
-
-init_db()
 
 if __name__ == "__main__":
     app.run(debug=True)
