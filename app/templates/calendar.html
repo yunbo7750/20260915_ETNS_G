@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}내 일정 · {{ service_name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-5">
+        <h5 class="fw-bold mb-3">일정 등록</h5>
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form method="post" action="{{ url_for('calendar.calendar_create') }}">
+                    <div class="mb-3">
+                        <label class="form-label">제목</label>
+                        <input type="text" name="title" class="form-control" placeholder="예: 아이 생일" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">유형</label>
+                        <select name="event_type" class="form-select">
+                            {% for t in event_types %}
+                            <option value="{{ t }}">{{ t }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">날짜</label>
+                        <input type="date" name="event_date" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">메모 (선택)</label>
+                        <input type="text" name="description" class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">일정 등록</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-7">
+        <h5 class="fw-bold mb-3">등록된 일정</h5>
+        {% if events %}
+        <ul class="list-group">
+            {% for e in events %}
+            {% set d_day = (e.event_date - today).days %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-light text-dark border me-2">{{ e.event_type }}</span>
+                    <strong>{{ e.title }}</strong>
+                    <div class="small text-muted">{{ e.event_date.strftime('%Y-%m-%d') }}
+                        {% if d_day >= 0 %} · D-{{ d_day }} {% else %} · 지남 {% endif %}
+                    </div>
+                </div>
+                <form method="post" action="{{ url_for('calendar.calendar_delete', event_id=e.id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="alert alert-light border">등록된 일정이 없어요. 일정을 등록하면 관련 상품을 미리 추천해드려요.</div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

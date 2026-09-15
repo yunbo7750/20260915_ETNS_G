@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}내 정보 · {{ service_name }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-4">내 정보</h4>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">기본 정보</h6>
+                <form method="post" action="{{ url_for('main.profile') }}">
+                    <div class="mb-3">
+                        <label class="form-label">이름</label>
+                        <input type="text" name="name" class="form-control" value="{{ current_user.name }}">
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">거주 국가</label>
+                            <input type="text" name="country" class="form-control" value="{{ current_user.country or '' }}">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">도시</label>
+                            <input type="text" name="city" class="form-control" value="{{ current_user.city or '' }}">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label">주재 시작일</label>
+                            <input type="date" name="assignment_start_date" class="form-control"
+                                   value="{{ current_user.assignment_start_date.isoformat() if current_user.assignment_start_date else '' }}">
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label">주재 종료(예정)일</label>
+                            <input type="date" name="assignment_end_date" class="form-control"
+                                   value="{{ current_user.assignment_end_date.isoformat() if current_user.assignment_end_date else '' }}">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">저장</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">가족 정보</h6>
+                <ul class="list-group mb-3">
+                    {% for m in current_user.family_members %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>{{ m.relation }}{% if m.name %} · {{ m.name }}{% endif %}{% if m.age is not none %} ({{ m.age }}세){% endif %}</span>
+                        <form method="post" action="{{ url_for('main.delete_family_member', member_id=m.id) }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">등록된 가족 정보가 없어요.</li>
+                    {% endfor %}
+                </ul>
+                <form method="post" action="{{ url_for('main.add_family_member') }}" class="row g-2">
+                    <div class="col-4">
+                        <select name="relation" class="form-select form-select-sm">
+                            <option value="배우자">배우자</option>
+                            <option value="자녀">자녀</option>
+                            <option value="기타">기타</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <input type="text" name="name" class="form-control form-control-sm" placeholder="이름(선택)">
+                    </div>
+                    <div class="col-4">
+                        <input type="date" name="birth_date" class="form-control form-control-sm">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-sm btn-outline-primary w-100">가족 추가</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h6 class="fw-bold mb-3">선호도</h6>
+                <ul class="list-group mb-3">
+                    {% for p in current_user.preferences %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>
+                            <span class="badge {{ 'bg-success' if p.sentiment == 'like' else 'bg-secondary' }} me-2">
+                                {{ '선호' if p.sentiment == 'like' else '비선호' }}
+                            </span>
+                            {% if p.target_type == 'category' %}{{ p.category }}{% else %}{{ p.product.name if p.product else '-' }}{% endif %}
+                        </span>
+                        <form method="post" action="{{ url_for('main.delete_preference', pref_id=p.id) }}">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">등록된 선호도가 없어요.</li>
+                    {% endfor %}
+                </ul>
+                <form method="post" action="{{ url_for('main.add_preference') }}" class="row g-2">
+                    <div class="col-4">
+                        <select name="target_type" class="form-select form-select-sm">
+                            <option value="category">카테고리</option>
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <select name="category" class="form-select form-select-sm">
+                            {% for c in categories %}
+                            <option value="{{ c }}">{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-4">
+                        <select name="sentiment" class="form-select form-select-sm">
+                            <option value="like">선호</option>
+                            <option value="dislike">비선호</option>
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-sm btn-outline-primary w-100">선호도 추가</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

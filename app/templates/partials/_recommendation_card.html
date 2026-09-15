@@ -1,0 +1,28 @@
+<div class="card h-100 shadow-sm rec-card">
+    <a href="{{ url_for('recommendation.recommendation_detail', rec_id=rec.id) }}" class="text-decoration-none text-reset">
+        <div class="rec-card-image d-flex align-items-center justify-content-center">
+            {% if rec.product.image_url %}
+            <img src="{{ rec.product.image_url }}" alt="{{ rec.product.name }}" class="img-fluid">
+            {% else %}
+            <span class="display-6">📦</span>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            <span class="badge bg-light text-dark border mb-2">{{ rec.product.category }}</span>
+            <h6 class="card-title mb-1">{{ rec.product.name }}</h6>
+            <p class="fw-bold text-primary mb-2">₩{{ "{:,}".format(rec.product.price) }}</p>
+            <p class="small text-muted rec-reason mb-1">{{ rec.reason }}</p>
+            {% if rec.expected_date %}
+            <p class="small text-secondary mb-0">예상 필요 시점: {{ rec.expected_date.strftime('%m월 %d일') }}</p>
+            {% endif %}
+        </div>
+    </a>
+    <div class="card-footer bg-white border-top-0 pt-0 d-flex gap-2">
+        <form method="post" action="{{ url_for('recommendation.recommendation_add_to_cart', rec_id=rec.id) }}" class="flex-fill">
+            <button type="submit" class="btn btn-outline-primary btn-sm w-100">장바구니 담기</button>
+        </form>
+        <form method="post" action="{{ url_for('recommendation.recommendation_buy_now', rec_id=rec.id) }}" class="flex-fill">
+            <button type="submit" class="btn btn-primary btn-sm w-100">바로 결제</button>
+        </form>
+    </div>
+</div>

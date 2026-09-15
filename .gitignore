@@ -1,10 +1,7 @@
+.venv/
 __pycache__/
 *.pyc
-.venv/
-venv/
-
-.vercel
-.env*
-
-supabase/.temp
-supabase/.branches
+instance/*.db
+.pytest_cache/
+.env
+.env.local

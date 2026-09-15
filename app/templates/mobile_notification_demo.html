@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}모바일 알림 데모 · {{ service_name }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-1">모바일 알림 데모</h4>
+<p class="text-muted mb-4">
+    구매 시기가 다가온 상품을 실제 모바일 앱처럼 푸시 알림으로 보여드려요.
+    알림을 탭하면 해당 상품 상세 페이지로 바로 이동합니다.
+</p>
+
+<div class="demo-stage">
+    <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+            <div class="status-bar">
+                <span id="clock-time">9:41</span>
+                <span>📶 📡 🔋</span>
+            </div>
+
+            <div class="lock-clock">
+                <div class="lock-time">9:41</div>
+                <div class="lock-date">{{ today_str }}</div>
+            </div>
+
+            {% if notification and recommendation %}
+            <a href="{{ url_for('recommendation.recommendation_detail', rec_id=recommendation.id) }}"
+               id="push-banner" class="push-banner">
+                <div class="push-icon">🛍️</div>
+                <div class="push-body">
+                    <div class="push-header">
+                        <span class="push-app-name">ETNERS LIFE</span>
+                        <span class="push-time">지금</span>
+                    </div>
+                    <div class="push-title">{{ notification.title }}</div>
+                    <div class="push-message">{{ notification.message }}</div>
+                </div>
+            </a>
+            {% else %}
+            <div class="push-banner push-banner-empty">
+                <div class="push-icon">🛍️</div>
+                <div class="push-body">
+                    <div class="push-header">
+                        <span class="push-app-name">ETNERS LIFE</span>
+                        <span class="push-time">-</span>
+                    </div>
+                    <div class="push-title">아직 임박한 알림이 없어요</div>
+                    <div class="push-message">구매 이력·일정이 쌓이면 이 자리에 실제 알림이 표시돼요.</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="demo-controls">
+        {% if notification and recommendation %}
+        <p class="small text-muted mb-2">
+            이 알림은 실제 추천 엔진이 만든 <strong>{{ recommendation.combined_types or recommendation.type }}</strong>
+            추천에서 발송되었어요. 알림을 탭하면 <strong>{{ recommendation.product.name }}</strong> 상품 상세 페이지로 이동해요.
+        </p>
+        {% endif %}
+        <button type="button" class="btn btn-outline-primary btn-sm" id="replay-btn">🔔 알림 다시 보기</button>
+        <a href="{{ url_for('main.notifications') }}" class="btn btn-outline-secondary btn-sm">알림 센터로 돌아가기</a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+    const banner = document.getElementById("push-banner") || document.querySelector(".push-banner-empty");
+    const replayBtn = document.getElementById("replay-btn");
+
+    function fireNotification() {
+        if (!banner) return;
+        banner.classList.remove("show");
+        // Force reflow so the animation can restart even if already shown.
+        void banner.offsetWidth;
+        setTimeout(() => banner.classList.add("show"), 900);
+    }
+
+    fireNotification();
+    if (replayBtn) {
+        replayBtn.addEventListener("click", fireNotification);
+    }
+})();
+</script>
+{% endblock %}

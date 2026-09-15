@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}장바구니 · {{ service_name }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">장바구니</h4>
+
+{% set items = cart.items.all() %}
+{% if items %}
+<div class="table-responsive">
+    <table class="table align-middle">
+        <thead><tr><th>상품</th><th>단가</th><th>수량</th><th>소계</th><th></th></tr></thead>
+        <tbody>
+        {% for item in items %}
+        <tr>
+            <td>
+                <a href="{{ url_for('product.product_detail', product_id=item.product.id) }}" class="text-decoration-none">
+                    {{ item.product.name }}
+                </a>
+            </td>
+            <td>₩{{ "{:,}".format(item.product.price) }}</td>
+            <td style="max-width:120px;">
+                <form method="post" action="{{ url_for('cart.cart_update_item', item_id=item.id) }}" class="d-flex gap-1">
+                    <input type="number" name="quantity" value="{{ item.quantity }}" min="0" class="form-control form-control-sm">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary">변경</button>
+                </form>
+            </td>
+            <td class="fw-bold">₩{{ "{:,}".format(item.subtotal) }}</td>
+            <td>
+                <form method="post" action="{{ url_for('cart.cart_delete_item', item_id=item.id) }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="d-flex justify-content-between align-items-center border-top pt-3">
+    <h5 class="fw-bold mb-0">총 금액: ₩{{ "{:,}".format(cart.total_amount) }}</h5>
+    <form method="post" action="{{ url_for('cart.cart_checkout') }}">
+        <button type="submit" class="btn btn-primary btn-lg">주문하기</button>
+    </form>
+</div>
+
+{% else %}
+<div class="alert alert-light border">장바구니가 비어 있어요. <a href="{{ url_for('recommendation.recommendation_list') }}">추천 상품 보러 가기</a></div>
+{% endif %}
+{% endblock %}

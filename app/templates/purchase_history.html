@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}구매 이력 · {{ service_name }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-3">구매 이력 · 다음 구매 예상</h4>
+
+{% if summary %}
+<div class="table-responsive mb-5">
+    <table class="table align-middle">
+        <thead>
+        <tr>
+            <th>상품</th>
+            <th>최근 구매</th>
+            <th>구매 횟수</th>
+            <th>평균 구매주기</th>
+            <th>예상 다음 구매일</th>
+            <th>상태</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in summary %}
+        <tr>
+            <td>
+                <a href="{{ url_for('product.product_detail', product_id=row.product.id) }}" class="text-decoration-none">
+                    {{ row.product.name }}
+                </a>
+            </td>
+            <td>{{ row.last_purchased_at.strftime('%Y-%m-%d') }}</td>
+            <td>{{ row.purchase_count }}회</td>
+            <td>{{ row.avg_interval_days ~ '일' if row.avg_interval_days else '-' }}</td>
+            <td>{{ row.expected_next_date.strftime('%Y-%m-%d') if row.expected_next_date else '-' }}</td>
+            <td>
+                {% if row.status == '준비할 시기' %}
+                <span class="badge bg-warning text-dark">준비할 시기</span>
+                {% else %}
+                <span class="badge bg-light text-muted border">일반</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-light border">아직 구매 이력이 없어요.</div>
+{% endif %}
+
+<h5 class="fw-bold mb-3">전체 구매 내역</h5>
+<div class="table-responsive">
+    <table class="table table-sm">
+        <thead>
+        <tr><th>상품</th><th>구매일</th><th>수량</th><th>가격</th></tr>
+        </thead>
+        <tbody>
+        {% for h in raw_history %}
+        <tr>
+            <td>{{ h.product.name if h.product else '-' }}</td>
+            <td>{{ h.purchased_at.strftime('%Y-%m-%d') }}</td>
+            <td>{{ h.quantity }}</td>
+            <td>₩{{ "{:,}".format(h.price) }}</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

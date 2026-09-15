@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% block title %}온보딩 · {{ service_name }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <h4 class="fw-bold mb-1">환영해요, {{ current_user.name }}님!</h4>
+        <p class="text-muted mb-4">몇 가지만 알려주시면 훨씬 더 정확한 맞춤 추천을 받을 수 있어요. (건너뛰어도 서비스 이용에는 문제없어요)</p>
+
+        <form method="post" action="{{ url_for('main.onboarding') }}">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">1. 현재 거주 국가 / 도시</h6>
+                    <div class="row">
+                        <div class="col-6"><input type="text" name="country" class="form-control" value="{{ current_user.country or '' }}" placeholder="예: 미국"></div>
+                        <div class="col-6"><input type="text" name="city" class="form-control" value="{{ current_user.city or '' }}" placeholder="예: 뉴저지"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">2. 가족 구성</h6>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" name="has_spouse" id="has_spouse">
+                        <label class="form-check-label" for="has_spouse">배우자가 있어요</label>
+                    </div>
+                    <label class="form-label">자녀 수</label>
+                    <input type="number" name="children_count" class="form-control" value="0" min="0" style="max-width:120px;">
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">3. 선호 카테고리</h6>
+                    <div class="row row-cols-2 row-cols-md-3 g-2">
+                        {% for c in categories %}
+                        <div class="col">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="preferred_categories" value="{{ c }}" id="cat-{{ loop.index }}">
+                                <label class="form-check-label" for="cat-{{ loop.index }}">{{ c }}</label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-body">
+                    <h6 class="fw-bold mb-3">4. 관심 있는 상품</h6>
+                    <div class="row row-cols-2 row-cols-md-3 g-2">
+                        {% for p in popular_products %}
+                        <div class="col">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="favorite_products" value="{{ p.id }}" id="prod-{{ p.id }}">
+                                <label class="form-check-label" for="prod-{{ p.id }}">{{ p.name }}</label>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between">
+                <a href="{{ url_for('main.home') }}" class="btn btn-outline-secondary">건너뛰기</a>
+                <button type="submit" class="btn btn-primary">완료하고 맞춤 추천 받기</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

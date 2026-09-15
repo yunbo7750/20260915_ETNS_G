@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}홈 · {{ service_name }}{% endblock %}
+{% block content %}
+
+<div class="hero-banner rounded-4 p-4 p-md-5 mb-4 text-white">
+    <h2 class="fw-bold mb-2">{{ current_user.name }}님, 지금쯤 준비하면 좋은 상품이 있어요.</h2>
+    <p class="mb-3 opacity-75">
+        {% if upcoming_events %}
+            가장 가까운 일정 '{{ upcoming_events[0].title }}'까지 {{ (upcoming_events[0].event_date - today).days }}일 남았어요.
+        {% else %}
+            이번 달 필요한 상품을 미리 준비해보세요.
+        {% endif %}
+    </p>
+    <a href="{{ url_for('main.notification_mobile_demo') }}" class="btn btn-light btn-sm fw-bold">📱 이 추천, 모바일 알림으로 받으면?</a>
+</div>
+
+{% if fallback_products %}
+<div class="alert alert-light border">아직 추천할 상품이 없어요. 아래 상품을 둘러보시고, 구매 이력이 쌓이면 맞춤 추천이 시작됩니다.</div>
+<h5 class="fw-bold mb-3">상품 둘러보기</h5>
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3 mb-4">
+    {% for product in fallback_products %}
+    <div class="col">{% include "partials/_product_card.html" %}</div>
+    {% endfor %}
+</div>
+<a href="{{ url_for('main.onboarding') }}" class="btn btn-primary">온보딩 정보 입력하고 맞춤 추천 받기</a>
+
+{% else %}
+
+{% if groups.REORDER %}
+<section class="mb-5">
+    <h5 class="fw-bold mb-1">다시 구매할 시기</h5>
+    <p class="text-muted small mb-3">자주 구매하는 상품을 다시 준비하세요.</p>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+        {% for rec in groups.REORDER %}
+        <div class="col">{% include "partials/_recommendation_card.html" %}</div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if groups.LIFE_EVENT %}
+<section class="mb-5">
+    <h5 class="fw-bold mb-1">일정에 맞춰 준비</h5>
+    <p class="text-muted small mb-3">다가오는 일정에 필요한 상품이에요.</p>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+        {% for rec in groups.LIFE_EVENT %}
+        <div class="col">{% include "partials/_recommendation_card.html" %}</div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if groups.PERSONAL %}
+<section class="mb-5">
+    <h5 class="fw-bold mb-1">나에게 맞는 추천</h5>
+    <p class="text-muted small mb-3">최근 구매와 선호도를 바탕으로 추천해요.</p>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 g-3">
+        {% for rec in groups.PERSONAL %}
+        <div class="col">{% include "partials/_recommendation_card.html" %}</div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<div class="text-center">
+    <a href="{{ url_for('recommendation.recommendation_list') }}" class="btn btn-outline-primary">추천 전체 보기</a>
+</div>
+
+{% endif %}
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}{{ product.name }} · {{ service_name }}{% endblock %}
+{% block content %}
+<div class="row g-4">
+    <div class="col-md-5">
+        <div class="rec-card-image rec-card-image-lg rounded-4 d-flex align-items-center justify-content-center">
+            {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.name }}" class="img-fluid">
+            {% else %}
+            <span class="display-1">📦</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="col-md-7">
+        <span class="badge bg-light text-dark border mb-2">{{ product.category }}</span>
+        <h3 class="fw-bold">{{ product.name }}</h3>
+        <p class="fs-4 text-primary fw-bold">₩{{ "{:,}".format(product.price) }} <span class="fs-6 text-muted fw-normal">/ {{ product.unit or '1개' }}</span></p>
+        <p class="text-muted">{{ product.description }}</p>
+
+        {% if recommendation %}
+        <div class="alert alert-primary">
+            <strong>추천 이유</strong><br>
+            {{ recommendation.reason }}
+            {% if recommendation.expected_date %}
+            <br><span class="small">예상 필요 시점: {{ recommendation.expected_date.strftime('%Y-%m-%d') }}</span>
+            {% endif %}
+            <br><span class="small">추천 점수: {{ recommendation.score }}점 ({{ recommendation.combined_types or recommendation.type }})</span>
+        </div>
+        {% endif %}
+
+        {% if cycle and cycle.has_cycle %}
+        <div class="card bg-light border-0 mb-3">
+            <div class="card-body">
+                <h6 class="fw-bold mb-2">최근 구매 정보</h6>
+                <p class="mb-1 small">최근 구매일: {{ cycle.last_purchased_at.strftime('%Y-%m-%d') }}</p>
+                <p class="mb-1 small">총 구매 횟수: {{ cycle.purchase_count }}회</p>
+                <p class="mb-1 small">평균 구매주기: 약 {{ cycle.avg_interval_days | round | int }}일</p>
+                {% if cycle.expected_next_date %}
+                <p class="mb-0 small">예상 다음 구매일: {{ cycle.expected_next_date.strftime('%Y-%m-%d') }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        {% if recommendation %}
+        {% set cart_action = url_for('recommendation.recommendation_add_to_cart', rec_id=recommendation.id) %}
+        {% set buy_now_action = url_for('recommendation.recommendation_buy_now', rec_id=recommendation.id) %}
+        {% else %}
+        {% set cart_action = url_for('cart.cart_add_item') %}
+        {% set buy_now_action = url_for('cart.cart_buy_now') %}
+        {% endif %}
+        <form method="post" action="{{ cart_action }}" class="d-flex gap-2 flex-wrap">
+            {% if not recommendation %}<input type="hidden" name="product_id" value="{{ product.id }}">{% endif %}
+            <input type="number" name="quantity" value="1" min="1" class="form-control" style="max-width:100px;">
+            <button type="submit" formaction="{{ cart_action }}" class="btn btn-outline-primary">장바구니 담기</button>
+            <button type="submit" formaction="{{ buy_now_action }}" class="btn btn-primary">바로 결제</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

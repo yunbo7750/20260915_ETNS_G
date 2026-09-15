@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}관리자 대시보드 · {{ service_name }}{% endblock %}
+{% block content %}
+<h4 class="fw-bold mb-4">관리자 대시보드</h4>
+
+<div class="row row-cols-2 row-cols-md-4 g-3 mb-4">
+    {% set cards = [
+        ('사용자 수', stats.user_count),
+        ('상품 수', stats.product_count),
+        ('구매 데이터 수', stats.purchase_count),
+        ('오늘 생성된 추천', stats.today_recommendations),
+        ('전체 생성된 추천', stats.total_recommendations),
+        ('추천 클릭 수', stats.total_clicks),
+        ('장바구니 추가 수', stats.total_cart_adds),
+        ('전체 추천 클릭률', stats.overall_ctr ~ '%'),
+    ] %}
+    {% for label, value in cards %}
+    <div class="col">
+        <div class="card shadow-sm h-100">
+            <div class="card-body text-center">
+                <p class="text-muted small mb-1">{{ label }}</p>
+                <p class="fs-3 fw-bold mb-0">{{ value }}</p>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<h5 class="fw-bold mb-3">추천 유형별 현황</h5>
+<div class="table-responsive">
+    <table class="table align-middle">
+        <thead>
+        <tr>
+            <th>추천 유형</th>
+            <th>생성 건수</th>
+            <th>클릭 수</th>
+            <th>장바구니 추가 수</th>
+            <th>클릭률</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for row in breakdown %}
+        <tr>
+            <td>{{ row.label }}</td>
+            <td>{{ row.generated }}</td>
+            <td>{{ row.clicked }}</td>
+            <td>{{ row.added_to_cart }}</td>
+            <td>{{ row.ctr }}%</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
