@@ -36,7 +36,7 @@ PRODUCTS = [
     ("새우깡", "과자", 2000, "90g", "과자,간식", "전체", "전연령", "국민 과자 새우깡."),
     ("초코파이", "과자", 5000, "12개입", "과자,간식,선물", "전체", "전연령", "부드러운 초코파이."),
     ("허니버터칩", "과자", 3000, "60g", "과자,간식", "전체", "전연령", "달콤한 허니버터칩."),
-    ("어린이 비타민 젤리", "과자", 8000, "60정", "간식,어린이도서", "전체", "3-10세", "아이들이 좋아하는 비타민 젤리."),
+    ("어린이 비타민 젤리", "과자", 8000, "60정", "간식,어린이도서,건강,비타민", "전체", "3-10세", "아이들이 좋아하는 비타민 젤리."),
     ("뻥튀기", "과자", 2500, "200g", "과자,간식", "전체", "전연령", "가볍게 즐기는 뻥튀기."),
     ("식혜", "음료", 5000, "500ml x4", "음료,명절선물", "가을", "전연령", "달콤한 전통 식혜."),
     ("수정과", "음료", 5500, "500ml x4", "음료,명절선물", "겨울", "전연령", "향긋한 수정과."),
@@ -58,9 +58,31 @@ PRODUCTS = [
     ("문구 세트", "기타", 7000, "1세트", "문구", "전체", "전연령", "연필과 노트가 포함된 문구 세트."),
     ("와인(선물용)", "기타", 35000, "750ml", "와인,선물", "전체", "성인", "특별한 날을 위한 와인."),
     ("여행용 세면도구 파우치", "생활용품", 12000, "1세트", "생활용품,비상식품", "전체", "전연령", "출국 전 챙기기 좋은 파우치."),
-    ("상비약 세트", "생활용품", 20000, "1세트", "생활용품,비상식품", "전체", "전연령", "해외 생활 필수 상비약 세트."),
+    ("상비약 세트", "생활용품", 20000, "1세트", "생활용품,비상식품,건강", "전체", "전연령", "해외 생활 필수 상비약 세트."),
     ("명절 선물세트(한과)", "기타", 30000, "1세트", "명절선물,선물", "전체", "전연령", "정성이 담긴 한과 선물세트."),
+    ("축구공 세트", "기타", 15000, "1세트", "장난감,축구,선물", "전체", "5-12세", "아이와 함께 즐기는 축구공 세트."),
 ]
+
+# Product image: every product shows a category-themed illustration
+# (app/static/images/products/) rather than a generic placeholder icon.
+CATEGORY_IMAGE_SLUG = {
+    "식품": "food",
+    "간편식": "instant",
+    "과자": "snack",
+    "음료": "drink",
+    "커피": "coffee",
+    "생활용품": "household",
+    "세제": "detergent",
+    "욕실용품": "bath",
+    "도서": "book",
+    "어린이도서": "kids-book",
+    "기타": "etc",
+}
+
+
+def _product_image_url(category: str) -> str:
+    slug = CATEGORY_IMAGE_SLUG.get(category, "etc")
+    return f"/static/images/products/{slug}.svg"
 
 
 def gen_dates(last_ago_days, interval_days, count):
@@ -85,7 +107,7 @@ def add_purchases(user, product_map, product_name, last_ago_days, interval_days,
         )
 
 
-def add_event(user, title, event_type, days_from_today, description=None):
+def add_event(user, title, event_type, days_from_today, description=None, keywords=None):
     db.session.add(
         CalendarEvent(
             user_id=user.id,
@@ -93,6 +115,7 @@ def add_event(user, title, event_type, days_from_today, description=None):
             event_type=event_type,
             event_date=TODAY + timedelta(days=days_from_today),
             description=description,
+            keywords=keywords,
         )
     )
 
@@ -142,6 +165,7 @@ def build_demo_data():
         product = Product(
             name=name, category=category, price=price, unit=unit,
             tags=tags, season=season, target_age=target_age, description=desc,
+            image_url=_product_image_url(category),
             stock=200, active=True,
         )
         db.session.add(product)
@@ -176,7 +200,10 @@ def build_demo_data():
     add_purchases(u1, product_map, "즉석밥(햇반)", last_ago_days=25, interval_days=30, count=6, qty=1)
     add_purchases(u1, product_map, "원두커피 드립백", last_ago_days=55, interval_days=60, count=4, qty=1)
     add_purchases(u1, product_map, "어린이 동화책 전집", last_ago_days=80, interval_days=90, count=3, qty=1)
-    add_event(u1, "이도윤 생일", "자녀생일", 14)
+    add_event(
+        u1, "이도윤 생일", "자녀생일", 14,
+        keywords="축구 좋아함, 비타민 필요",
+    )
     add_event(u1, "한국 방문", "한국방문", 30)
 
     # --- user02: 이서연 - 독일, 1인 가구, 도서/생활용품 선호, 도서 다독 ---
@@ -223,7 +250,7 @@ def build_demo_data():
     add_purchases(u4, product_map, "어린이 학습만화", last_ago_days=58, interval_days=60, count=4, qty=1)
     add_purchases(u4, product_map, "참치캔", last_ago_days=20, interval_days=25, count=6, qty=2)
     add_purchases(u4, product_map, "상비약 세트", last_ago_days=100, interval_days=120, count=2, qty=1)
-    add_event(u4, "학교 행사", "학교행사", 3)
+    add_event(u4, "학교 행사", "학교행사", 3, keywords="건강 챙기기")
     add_event(u4, "일시 출국", "해외출국", 20)
 
     # --- user05: 정수빈 - 아랍에미리트, 1인 가구, 데이터가 적은 신규 유저 ---

@@ -66,21 +66,10 @@ def create_app(config_class=Config):
 
     if app.config.get("AUTO_SEED_IF_EMPTY", True):
         with app.app_context():
-            from sqlalchemy import inspect as sa_inspect, text
-
-            insp = sa_inspect(db.engine)
-            if "users" in insp.get_table_names():
-                existing_columns = {c["name"] for c in insp.get_columns("users")}
-                if "email" not in existing_columns:
-                    # A `users` table exists but doesn't match our schema -
-                    # it's left over from an unrelated app that previously
-                    # used this database. Drop it (and its dependents) so
-                    # create_all() below can lay down our own schema.
-                    with db.engine.begin() as conn:
-                        conn.execute(text("DROP TABLE IF EXISTS tasks"))
-                        conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
-
+            _run_startup_migrations()
             db.create_all()
+            _ensure_additive_columns()
+
             from app.models import Product
 
             if Product.query.count() == 0:
@@ -89,3 +78,41 @@ def create_app(config_class=Config):
                 build_demo_data()
 
     return app
+
+
+def _run_startup_migrations():
+    """One-off cleanup for a database that previously belonged to an
+    unrelated app (see README) - runs before create_all()."""
+    from sqlalchemy import inspect as sa_inspect, text
+
+    insp = sa_inspect(db.engine)
+    if "users" in insp.get_table_names():
+        existing_columns = {c["name"] for c in insp.get_columns("users")}
+        if "email" not in existing_columns:
+            # A `users` table exists but doesn't match our schema - it's
+            # left over from an unrelated app that previously used this
+            # database. Drop it (and its dependents) so create_all() can
+            # lay down our own schema.
+            with db.engine.begin() as conn:
+                conn.execute(text("DROP TABLE IF EXISTS tasks"))
+                conn.execute(text("DROP TABLE IF EXISTS users CASCADE"))
+
+
+def _ensure_additive_columns():
+    """create_all() only creates missing tables, never alters existing
+    ones. Purely-additive model changes (a new nullable column) are applied
+    here instead of pulling in a full migration framework for an MVP."""
+    from sqlalchemy import inspect as sa_inspect, text
+
+    insp = sa_inspect(db.engine)
+    additive_columns = {
+        "calendar_events": [("keywords", "VARCHAR(255)")],
+    }
+    for table, columns in additive_columns.items():
+        if table not in insp.get_table_names():
+            continue
+        existing = {c["name"] for c in insp.get_columns(table)}
+        for name, ddl_type in columns:
+            if name not in existing:
+                with db.engine.begin() as conn:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {ddl_type}"))

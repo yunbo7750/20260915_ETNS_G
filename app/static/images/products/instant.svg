@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fdba74"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#g)"/>
+  <text x="200" y="150" font-size="110" text-anchor="middle" dominant-baseline="central">🍱</text>
+  <text x="200" y="256" font-size="26" font-weight="700" fill="#fff" text-anchor="middle" font-family="sans-serif" opacity="0.9">간편식</text>
+</svg>

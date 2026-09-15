@@ -61,6 +61,14 @@ class Config:
         "크리스마스": ["선물", "간식", "파티용품"],
         "기타": ["생활용품"],
     }
+    # Max number of products matched purely from the event_type mapping above.
+    EVENT_TYPE_MAX_PRODUCTS = 3
+    # Max number of extra products matched from the event's free-text keywords.
+    EVENT_KEYWORD_MAX_PRODUCTS = 3
+    # Score bonus (on top of SCORE_LIFE_EVENT) for a product matched by a
+    # user-entered keyword rather than just the event's fixed type mapping -
+    # a keyword match is a stronger, more specific signal.
+    SCORE_LIFE_EVENT_KEYWORD_BONUS = 15
 
     # --- Recommendation engine: PERSONAL LIFE ---
     CHILD_PRODUCT_CATEGORIES = ["어린이도서", "간식", "장난감"]

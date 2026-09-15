@@ -37,6 +37,7 @@ def calendar_create():
     event_type = request.form.get("event_type", "기타")
     event_date = request.form.get("event_date")
     description = request.form.get("description", "").strip() or None
+    keywords = request.form.get("keywords", "").strip() or None
 
     if not title or not event_date:
         flash("일정 제목과 날짜를 입력해주세요.", "danger")
@@ -48,6 +49,7 @@ def calendar_create():
         event_type=event_type,
         event_date=date.fromisoformat(event_date),
         description=description,
+        keywords=keywords,
     )
     db.session.add(event)
     db.session.commit()
@@ -90,6 +92,7 @@ def api_calendar_create():
         event_type=data.get("event_type", "기타"),
         event_date=date.fromisoformat(data["event_date"]),
         description=data.get("description"),
+        keywords=data.get("keywords"),
     )
     db.session.add(event)
     db.session.commit()
@@ -110,6 +113,8 @@ def api_calendar_update(event_id):
         event.event_date = date.fromisoformat(data["event_date"])
     if "description" in data:
         event.description = data["description"]
+    if "keywords" in data:
+        event.keywords = data["keywords"]
 
     db.session.commit()
     return jsonify(event.to_dict())

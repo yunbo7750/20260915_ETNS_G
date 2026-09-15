@@ -51,3 +51,27 @@ def test_event_far_in_future_is_not_recommended(app_context):
     candidates = life_calendar_engine.generate(user)
 
     assert candidates == []
+
+
+def test_event_keyword_matches_unrelated_product(app_context):
+    user = _make_user()
+    vitamin_product = _make_product(
+        name="어린이 비타민 젤리", category="과자", tags="간식,건강,비타민"
+    )
+    unrelated_product = _make_product(name="베스트셀러 소설", category="도서", tags="도서")
+    db.session.add(
+        CalendarEvent(
+            user_id=user.id, title="아이 건강검진", event_type="기타",
+            event_date=date.today() + timedelta(days=5),
+            keywords="비타민, 건강",
+        )
+    )
+    db.session.flush()
+
+    candidates = life_calendar_engine.generate(user)
+    candidate_ids = {c["product_id"] for c in candidates}
+
+    assert vitamin_product.id in candidate_ids
+    assert unrelated_product.id not in candidate_ids
+    matched = next(c for c in candidates if c["product_id"] == vitamin_product.id)
+    assert "키워드" in matched["reason"]

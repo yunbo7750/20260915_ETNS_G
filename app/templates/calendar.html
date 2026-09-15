@@ -27,6 +27,15 @@
                         <label class="form-label">메모 (선택)</label>
                         <input type="text" name="description" class="form-control">
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label">키워드 (선택)</label>
+                        <input type="text" name="keywords" class="form-control"
+                               placeholder="예: 축구 좋아함, 매운맛, 비타민 필요">
+                        <div class="form-text">
+                            아이 취향, 건강 상태, 선호하는 맛 등을 적어두면 이 일정에 맞춰
+                            어울리는 상품을 자동으로 추천해드려요.
+                        </div>
+                    </div>
                     <button type="submit" class="btn btn-primary w-100">일정 등록</button>
                 </form>
             </div>
@@ -45,6 +54,13 @@
                     <div class="small text-muted">{{ e.event_date.strftime('%Y-%m-%d') }}
                         {% if d_day >= 0 %} · D-{{ d_day }} {% else %} · 지남 {% endif %}
                     </div>
+                    {% if e.keyword_list() %}
+                    <div class="mt-1">
+                        {% for kw in e.keyword_list() %}
+                        <span class="badge bg-light text-primary border">#{{ kw }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
                 <form method="post" action="{{ url_for('calendar.calendar_delete', event_id=e.id) }}">
                     <button type="submit" class="btn btn-sm btn-outline-danger">삭제</button>
